@@ -1,0 +1,13 @@
+# product overview.md
+3. Defense 게임 (2분)
+화면 상단에서 단어 이미지 or 애니메이션 조각이 떨어짐
+
+
+# Map System.md
+
+Map은 0이 아니라 1부터 시작하고
+Stage 7까지하고 나서 Boss stage나오게 해줘
+
+
+
+
