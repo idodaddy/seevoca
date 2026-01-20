@@ -36,7 +36,8 @@ yarn-error.log*
 
 # secrets
 gcp-key.json
-*.json
+secrets.json
+config.private.json
 
 # vercel
 .vercel
