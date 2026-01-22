@@ -83,6 +83,79 @@
       transform: translateY(0);
     }
   }
+
+  /* Game Map Animations */
+  --animate-dash: dash 2s linear infinite;
+  --animate-float-horizontal: floatHorizontal 20s linear infinite;
+  --animate-bounce-subtle: bounceSubtle 2s infinite;
+
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+
+  @keyframes floatHorizontal {
+    0% {
+      transform: translateX(0);
+    }
+
+    50% {
+      transform: translateX(20px);
+    }
+
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounceSubtle {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  /* 3D Isometric Utilities & Animations */
+  /* Note: transform-style is not part of @theme, moved to global scope below */
+
+  --animate-dash-slow: dashSlow 30s linear infinite;
+  --animate-float-vertical: floatVertical 3s ease-in-out infinite;
+
+  @keyframes dashSlow {
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+
+  @keyframes floatVertical {
+
+    0%,
+    100% {
+      transform: translateZ(10px);
+    }
+
+    50% {
+      transform: translateZ(20px);
+    }
+  }
+
+  --animate-spin-slow: spinCustom 20s linear infinite;
+
+  @keyframes spinCustom {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -96,4 +169,9 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Global Utilities */
+.transform-style-3d {
+  transform-style: preserve-3d;
 }

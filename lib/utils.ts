@@ -60,3 +60,10 @@ export function formatPrice(amount: number, currency: string = 'USD'): string {
     currency,
   }).format(amount);
 }
+
+/**
+ * Format number with locale
+ */
+export function formatNumber(num: number): string {
+  return new Intl.NumberFormat('en-US').format(num);
+}

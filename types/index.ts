@@ -34,3 +34,52 @@ export interface GuestProgress {
     stars: number;
     completedAt: number;
 }
+
+// ============================================
+// Map & Stage Types
+// ============================================
+
+export interface Map {
+    id: string;
+    order: number;
+    name_en: string;
+    name_ko: string;
+    icon: string;
+    theme: string;
+    difficulty: number;
+    totalStages: number;
+    totalWords: number;
+    unlockRequirement: UnlockRequirement;
+    createdAt: Timestamp;
+    isActive: boolean;
+}
+
+export interface Stage {
+    id: string;
+    mapId: string;
+    stageNumber: number;
+    title_en: string;
+    title_ko: string;
+    description: string;
+    category: string;
+    wordIds: string[];
+    wordCount: number;
+    videoUrl: string;
+    thumbnailUrl: string;
+    isBoss: boolean;
+    isFree: boolean;
+    unlockRequirement: UnlockRequirement;
+}
+
+export interface UnlockRequirement {
+    type: 'free' | 'payment' | 'previous_stage';
+    value?: string; // mapId for payment, stageId for previous_stage
+}
+
+export interface StageProgress {
+    stageId: string;
+    stars: number; // 0-3
+    score: number;
+    completedAt: Timestamp;
+    wordsLearned: number;
+}

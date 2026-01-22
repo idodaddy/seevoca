@@ -1,28 +1,21 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { useAuthStore } from '@/lib/store/auth-store';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function LearnPage() {
+export default function LearnRedirectPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        router.replace('/play');
+    }, [router]);
+
     return (
-        <ProtectedRoute>
-            <div className="min-h-screen bg-slate-50 p-8">
-                <h1 className="text-3xl font-bold text-slate-900 mb-4">Learner Dashboard</h1>
-                <p className="text-slate-600">
-                    Welcome to the learning area! If you can see this, you are authenticated.
-                </p>
-                <div className="mt-8 p-4 bg-white rounded-lg shadow border border-slate-100">
-                    <p className="font-mono text-sm">
-                        Current User: <DebugUser />
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="text-center">
+                <div className="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-slate-500">Redirecting to World Map...</p>
             </div>
-        </ProtectedRoute>
+        </div>
     );
-}
-
-function DebugUser() {
-    const { user, isGuest } = useAuthStore();
-    if (isGuest) return <span className="text-orange-500">Guest Mode</span>;
-    return <span className="text-blue-500">{user?.email}</span>;
 }

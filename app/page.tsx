@@ -61,7 +61,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
               <button
-                onClick={() => user ? router.push('/learn') : router.push('/login')}
+                onClick={() => user ? router.push('/play') : router.push('/login')}
                 className="group relative px-8 py-4 bg-brand-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-brand-600/20 hover:shadow-2xl hover:shadow-brand-600/40 hover:-translate-y-1 transition-all"
               >
                 <span className="flex items-center gap-2">
