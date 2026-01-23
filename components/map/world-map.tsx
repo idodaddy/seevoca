@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Stage } from '@/types';
 import { cn } from '@/lib/utils';
@@ -99,6 +99,32 @@ import { StageNode } from './stage-node';
 export function WorldMap({ stages, getStageStatus, getStageStars, mapName, mapIcon }: WorldMapProps) {
     const router = useRouter();
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+    // Responsive container size tracking
+    useEffect(() => {
+        const updateSize = () => {
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                setContainerSize({ width: rect.width, height: rect.height });
+            }
+        };
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+
+    // Calculate responsive scale factor (1.0 at 1024px width, scales down for mobile)
+    const scaleFactor = useMemo(() => {
+        const baseWidth = 1024;
+        const minScale = 0.5;
+        const maxScale = 1.0;
+        const scale = Math.min(maxScale, Math.max(minScale, containerSize.width / baseWidth));
+        return scale;
+    }, [containerSize.width]);
+
+    const isMobile = containerSize.width < 640;
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
@@ -118,10 +144,12 @@ export function WorldMap({ stages, getStageStatus, getStageStars, mapName, mapIc
 
     return (
         <div
+            ref={containerRef}
             className="relative w-full overflow-hidden bg-[#60a5fa]"
             style={{
-                height: '700px',
-                borderRadius: '40px',
+                // Responsive height: maintains aspect ratio, with min/max constraints
+                height: 'clamp(400px, 65vw, 700px)',
+                borderRadius: isMobile ? '24px' : '40px',
                 perspective: '1200px',
             }}
         >
@@ -207,7 +235,7 @@ export function WorldMap({ stages, getStageStatus, getStageStars, mapName, mapIc
                                     className="relative select-none transform transition-transform hover:scale-110 hover:-translate-y-2 duration-300"
                                     style={{
                                         transform: `rotateZ(${-ISO_ROTATE_Z}deg) rotateX(${-ISO_ROTATE_X}deg) translateY(-90%)`, // Billboard
-                                        fontSize: `${deco.scale * 2.5}rem`,
+                                        fontSize: `${deco.scale * 2.5 * scaleFactor}rem`,
                                         filter: 'drop-shadow(0 5px 5px rgba(0,0,0,0.15))'
                                     }}
                                 >
@@ -234,6 +262,7 @@ export function WorldMap({ stages, getStageStatus, getStageStars, mapName, mapIc
                                     stars={stars}
                                     onClick={(s) => handleStageClick(s, status)}
                                     index={i}
+                                    scaleFactor={scaleFactor}
                                 />
                             );
                         })}
@@ -241,35 +270,70 @@ export function WorldMap({ stages, getStageStatus, getStageStars, mapName, mapIc
                 </div>
             </div>
 
-            {/* UI Overlay */}
-            <div className="absolute top-6 left-6 z-50 animate-fade-in-up">
-                <div className="bg-white/90 backdrop-blur-xl pl-2 pr-6 py-2 rounded-2xl border-2 border-white/50 shadow-xl flex items-center gap-4 hover:scale-105 transition-transform">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl flex items-center justify-center text-4xl shadow-inner rotate-3 hover:rotate-12 transition-transform">
+            {/* UI Overlay - Responsive */}
+            <div className={cn(
+                "absolute z-50 animate-fade-in-up",
+                isMobile ? "top-3 left-3 right-3" : "top-6 left-6"
+            )}>
+                <div className={cn(
+                    "bg-white/90 backdrop-blur-xl border-2 border-white/50 shadow-xl flex items-center hover:scale-[1.02] transition-transform",
+                    isMobile
+                        ? "pl-2 pr-3 py-2 rounded-xl gap-2"
+                        : "pl-2 pr-6 py-2 rounded-2xl gap-4"
+                )}>
+                    <div className={cn(
+                        "bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl flex items-center justify-center shadow-inner rotate-3 hover:rotate-12 transition-transform flex-shrink-0",
+                        isMobile ? "w-10 h-10 text-2xl" : "w-16 h-16 text-4xl"
+                    )}>
                         {mapIcon}
                     </div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm">World 1</span>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <span className={cn(
+                                "font-black bg-blue-500 text-white rounded-full uppercase tracking-widest shadow-sm",
+                                isMobile ? "text-[8px] px-1.5 py-0.5" : "text-[10px] px-2 py-0.5"
+                            )}>World 1</span>
                         </div>
-                        <div className="text-2xl font-black text-slate-800 leading-none tracking-tight">{mapName}</div>
+                        <div className={cn(
+                            "font-black text-slate-800 leading-none tracking-tight truncate",
+                            isMobile ? "text-base" : "text-2xl"
+                        )}>{mapName}</div>
 
                         {/* Progress Bar & Stage Count */}
-                        <div className="mt-2 flex items-center gap-3 w-full">
-                            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className={cn(
+                            "flex items-center gap-2 w-full",
+                            isMobile ? "mt-1" : "mt-2 gap-3"
+                        )}>
+                            <div className={cn(
+                                "flex-1 bg-slate-200 rounded-full overflow-hidden",
+                                isMobile ? "h-1.5" : "h-2"
+                            )}>
                                 <div className="h-full bg-blue-500 rounded-full" style={{ width: '12.5%' }}></div>
                             </div>
-                            <span className="text-xs font-bold text-slate-500 shrink-0">1/8 Stages</span>
+                            <span className={cn(
+                                "font-bold text-slate-500 shrink-0",
+                                isMobile ? "text-[10px]" : "text-xs"
+                            )}>1/8</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Currency UI */}
-            <div className="absolute top-6 right-6 z-50 flex gap-3">
-                <div className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 text-white font-bold border border-white/20 shadow-lg">
+            {/* Currency UI - Responsive */}
+            <div className={cn(
+                "absolute z-50 flex",
+                isMobile ? "bottom-3 right-3 gap-2" : "top-6 right-6 gap-3"
+            )}>
+                <div className={cn(
+                    "bg-black/50 backdrop-blur-md rounded-full flex items-center text-white font-bold border border-white/20 shadow-lg",
+                    isMobile ? "px-2.5 py-1 gap-1 text-xs" : "px-4 py-1.5 gap-2 text-sm"
+                )}>
                     <span className="animate-spin-slow">🪙</span> 1,250
                 </div>
-                <div className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 text-white font-bold border border-white/20 shadow-lg">
+                <div className={cn(
+                    "bg-black/50 backdrop-blur-md rounded-full flex items-center text-white font-bold border border-white/20 shadow-lg",
+                    isMobile ? "px-2.5 py-1 gap-1 text-xs" : "px-4 py-1.5 gap-2 text-sm"
+                )}>
                     <span className="animate-pulse">💎</span> 5
                 </div>
             </div>

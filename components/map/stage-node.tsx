@@ -12,13 +12,18 @@ interface StageNodeProps {
     stars: number;
     onClick: (stage: Stage) => void;
     index: number;
+    scaleFactor?: number; // Responsive scale factor (0.5-1.0)
 }
 
 const ISO_ROTATE_X = 55;
 const ISO_ROTATE_Z = -35;
 
-export function StageNode({ stage, config, status, stars, onClick, index }: StageNodeProps) {
+export function StageNode({ stage, config, status, stars, onClick, index, scaleFactor = 1 }: StageNodeProps) {
     const [isHovered, setIsHovered] = useState(false);
+
+    // Responsive size calculations
+    const nodeSize = Math.max(40, 64 * scaleFactor); // 64px at full, 40px minimum
+    const isMobile = scaleFactor < 0.7;
 
     // Base height logic from WorldMap
     const zHeight = stage.isBoss ? 20 : (index * 2);
@@ -35,16 +40,20 @@ export function StageNode({ stage, config, status, stars, onClick, index }: Stag
             onMouseLeave={() => setIsHovered(false)}
             onClick={() => onClick(stage)}
         >
-            {/* 1. The Pedestal (Circular Base) */}
+            {/* 1. The Pedestal (Circular Base) - Responsive */}
             <div
                 className={cn(
-                    "absolute transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border-4 shadow-lg transition-transform",
+                    "absolute transform -translate-x-1/2 -translate-y-1/2 rounded-full border-4 shadow-lg transition-transform",
                     status === 'locked' ? "bg-slate-300/50 border-slate-400/50" : "bg-white border-white",
                     isHovered && "scale-110",
                     // Pulse ring for unlocked stages (Current Stage Emphasis)
                     status === 'unlocked' && !stage.isBoss && "animate-pulse border-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.6)]"
                 )}
-                style={{ transform: `rotateZ(${-ISO_ROTATE_Z}deg) rotateX(${-ISO_ROTATE_X}deg) scaleY(0.5)` }} // Flattened circle on ground
+                style={{
+                    width: `${nodeSize}px`,
+                    height: `${nodeSize}px`,
+                    transform: `rotateZ(${-ISO_ROTATE_Z}deg) rotateX(${-ISO_ROTATE_X}deg) scaleY(0.5)`
+                }}
             />
 
             {/* 2. Floating Object (Crystal/Flag) */}
@@ -62,61 +71,102 @@ export function StageNode({ stage, config, status, stars, onClick, index }: Stag
                         "rotate-z-[35deg] rotate-x-[-55deg]", // Face Camera
                     )}
                     style={{
-                        transform: `rotateZ(${-ISO_ROTATE_Z}deg) rotateX(${-ISO_ROTATE_X}deg) scale(${config.scale}) translateY(-20px)`,
+                        transform: `rotateZ(${-ISO_ROTATE_Z}deg) rotateX(${-ISO_ROTATE_X}deg) scale(${config.scale * scaleFactor}) translateY(-20px)`,
                     }}
                 >
 
-                    {/* LOCKED: Solid Grey Diamond (NO TRANSPARENCY) */}
+                    {/* LOCKED: Solid Grey Diamond (NO TRANSPARENCY) - Responsive */}
                     {status === 'locked' && (
-                        <div className={cn(
-                            "w-16 h-16 rounded-2xl rotate-45 border-2 border-white flex items-center justify-center shadow-lg",
-                            "bg-[#9CA3AF]" // Tailwind bg-gray-400 equivalent, SOLID COLOR
-                        )}>
-                            <span className="text-2xl text-white -rotate-45 drop-shadow-md">🔒</span>
+                        <div
+                            className={cn(
+                                "rounded-2xl rotate-45 border-2 border-white flex items-center justify-center shadow-lg",
+                                "bg-[#9CA3AF]" // Tailwind bg-gray-400 equivalent, SOLID COLOR
+                            )}
+                            style={{
+                                width: `${nodeSize}px`,
+                                height: `${nodeSize}px`,
+                            }}
+                        >
+                            <span className={cn(
+                                "text-white -rotate-45 drop-shadow-md",
+                                isMobile ? "text-lg" : "text-2xl"
+                            )}>🔒</span>
                         </div>
                     )}
 
-                    {/* UNLOCKED: Floating Gem/Portal */}
+                    {/* UNLOCKED: Floating Gem/Portal - Responsive */}
                     {status === 'unlocked' && (
                         <div className="relative group">
                             {/* Glow effect */}
                             <div className="absolute inset-0 bg-blue-400 blur-xl opacity-50 animate-pulse" />
 
                             {/* The Gem */}
-                            <div className={cn(
-                                "w-16 h-16 bg-gradient-to-br from-blue-300 to-blue-600 rounded-2xl rotate-45 border-4 border-white shadow-2xl flex items-center justify-center",
-                                isHovered && "scale-110 rotate-12 transition-transform"
-                            )}>
-                                <span className="text-2xl font-black text-white -rotate-45 drop-shadow-md">{stage.stageNumber}</span>
+                            <div
+                                className={cn(
+                                    "bg-gradient-to-br from-blue-300 to-blue-600 rounded-2xl rotate-45 border-4 border-white shadow-2xl flex items-center justify-center",
+                                    isHovered && "scale-110 rotate-12 transition-transform"
+                                )}
+                                style={{
+                                    width: `${nodeSize}px`,
+                                    height: `${nodeSize}px`,
+                                }}
+                            >
+                                <span className={cn(
+                                    "font-black text-white -rotate-45 drop-shadow-md",
+                                    isMobile ? "text-lg" : "text-2xl"
+                                )}>{stage.stageNumber}</span>
                             </div>
 
-                            {/* 'PLAY' Badge */}
-                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg animate-bounce">
+                            {/* 'PLAY' Badge - Responsive */}
+                            <div className={cn(
+                                "absolute left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-black rounded-full uppercase tracking-tighter shadow-lg animate-bounce",
+                                isMobile
+                                    ? "-bottom-3 text-[8px] px-1.5 py-0.5"
+                                    : "-bottom-4 text-[10px] px-2 py-0.5"
+                            )}>
                                 PLAY
                             </div>
                         </div>
                     )}
 
-                    {/* COMPLETED: Flag Pole */}
+                    {/* COMPLETED: Flag Pole - Responsive */}
                     {status === 'completed' && (
                         <div className="relative flex flex-col items-center">
                             {/* Flag */}
-                            <div className="text-5xl filter drop-shadow-lg animate-pulse-subtle origin-bottom-left">🚩</div>
+                            <div className={cn(
+                                "filter drop-shadow-lg animate-pulse-subtle origin-bottom-left",
+                                isMobile ? "text-3xl" : "text-5xl"
+                            )}>🚩</div>
                             {/* Base */}
-                            <div className="w-8 h-2 bg-slate-600 rounded-full mt-[-5px]" />
+                            <div className={cn(
+                                "bg-slate-600 rounded-full mt-[-5px]",
+                                isMobile ? "w-5 h-1.5" : "w-8 h-2"
+                            )} />
 
                             {/* Stars */}
                             {stars > 0 && (
                                 <div className="absolute -top-4 flex gap-0.5 filter drop-shadow-md">
-                                    {Array(stars).fill('⭐').map((s, i) => <span key={i} className="text-xs animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}>{s}</span>)}
+                                    {Array(stars).fill('⭐').map((s, i) => (
+                                        <span
+                                            key={i}
+                                            className={cn(
+                                                "animate-bounce",
+                                                isMobile ? "text-[10px]" : "text-xs"
+                                            )}
+                                            style={{ animationDelay: `${i * 0.1}s` }}
+                                        >{s}</span>
+                                    ))}
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {/* BOSS: Big Castle */}
+                    {/* BOSS: Big Castle - Responsive */}
                     {stage.isBoss && status !== 'locked' && (
-                        <div className="text-6xl filter drop-shadow-2xl hover:scale-110 transition-transform">🏰</div>
+                        <div className={cn(
+                            "filter drop-shadow-2xl hover:scale-110 transition-transform",
+                            isMobile ? "text-4xl" : "text-6xl"
+                        )}>🏰</div>
                     )}
 
                 </div>
